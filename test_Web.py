@@ -33,13 +33,10 @@ def getEpisodesLink(url):
 	This function takes in a link of Season of Show the family guy
 	and returns the list of links of episode in that season
 	'''
-	EpisodeLinks = []
 	page = requests.get(url)
 	soup = BeautifulSoup(page.content,"html.parser")
 	container = soup.find_all("div",class_="cat-eps")
-	for link in container:
-		
-		EpisodeLinks.append(link.a["href"])
+	EpisodeLinks = [link.a["href"] for link in container]
 	return EpisodeLinks
 
 def getVideoLink(ListOfLinks):
@@ -52,12 +49,16 @@ def getVideoLink(ListOfLinks):
 
 	VideoLink =[]
 	driver = webdriver.Chrome(options=chrome_options)
-	wait = WebDriverWait(driver, 5)
+	wait = WebDriverWait(driver, 30)
 	for url in ListOfLinks:
 		driver.get(url)
-		iframe = wait.until(EC.presence_of_element_located((By.XPATH,"//*[@id='cizgi-js-0']")))
-		driver.switch_to.frame(iframe)
-		link = ( driver.find_element_by_tag_name("video").get_attribute("src") )
+		try:
+			iframe = wait.until(EC.presence_of_element_located((By.XPATH,"//*[@id='cizgi-js-0']")))
+			driver.switch_to.frame(iframe)
+		except:
+			print("Some error occured in the link ",url)
+			
+		link = ( driver.find_element("tag name","video").get_attribute("src") )
 		print(link)
 		VideoLink.append(link)
 		
@@ -78,8 +79,6 @@ def DownloadVideos(ListOfLinks):
 def main(url):
 	
 	EpL = getEpisodesLink(url)
-	EpL=EpL[0:15]
-	
 	
 	VideoLink = getVideoLink(EpL)
 	print(VideoLink)
